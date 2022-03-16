@@ -1,30 +1,36 @@
 import actionTypes from "../actionTypes";
+import G4 from "../../assets/sounds/G4.mp3"
+import A4 from "../../assets/sounds/A4.mp3"
+import C5 from "../../assets/sounds/C5.mp3"
+import B4 from "../../assets/sounds/B4.mp3"
+import D5 from "../../assets/sounds/D5.mp3"
+import E5 from "../../assets/sounds/E5.mp3"
 
 const gameStates = {
     musicButtons: [
         {
             color: "red",
-            music: ""
+            music: G4
         },
         {
             color: "blue",
-            music: ""
+            music: A4
         },
         {
             color: "yellow",
-            music: ""
+            music: C5
         },
         {
             color: "purple",
-            music: ""
+            music: B4
         },
         {
             color: "black",
-            music: ""
+            music: D5
         },
         {
             color: "silver",
-            music: ""
+            music: E5
         }
     ],
     play: 0,

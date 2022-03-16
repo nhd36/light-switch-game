@@ -20,7 +20,7 @@ const userReducers = (state=userStates, action) => {
         case actionTypes.USER_SCORE:
             return score(state)
         case actionTypes.USER_LOSE:
-            return lost(state)
+            return lose(state)
         default:
             return state
     }
@@ -45,7 +45,8 @@ const start = (state) => {
 const end = (state) => {
     return {
         ...state,
-        move: false
+        move: false,
+        picked: []
     }
 }
 
@@ -63,10 +64,12 @@ const score = (state) => {
     }
 }
 
-const lost = (state) => {
+const lose = (state) => {
     return {
         ...state,
-        life: state.life - 1
+        life: state.life - 1,
+        picked: [],
+        move: false
     }
 }
 

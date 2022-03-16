@@ -2,7 +2,7 @@ import {Box, Grid, Typography, Button} from "@mui/material";
 import {makeStyles} from "@mui/styles";
 import {useDispatch, useSelector} from "react-redux";
 import actionTypes from "../redux/actionTypes";
-import {useEffect} from "react";
+import {useEffect, useState} from "react";
 
 const useStyles = makeStyles({
     root: {
@@ -12,6 +12,9 @@ const useStyles = makeStyles({
         flexDirection: "column",
         alignItems: "center",
         borderRadius: "30px"
+    },
+    activeButton: {
+        backgroundColor: "white"
     },
     buttonContainer: {
         display: "flex",
@@ -48,21 +51,101 @@ const sleep = delay => {
     return new Promise(resolve => setTimeout(resolve, delay))
 }
 
-const playMusic = musicId => {
-    console.log("Music playing:", musicId)
-}
-
 const GameScreen = () => {
     const classes = useStyles();
     const dispatch = useDispatch()
+    const [invoke, setInvoke] = useState(null)
 
     const host = useSelector(state => state.host)
     const user = useSelector(state => state.user)
     const game = useSelector(state => state.game)
 
+    const playMusic = async musicId => {
+        // Play audio button
+        let audioPath = game.musicButtons[musicId].music;
+        let audioTune = new Audio(audioPath)
+        audioTune.play().then(r => console.log(`Play button ${musicId}`))
+    }
+
     const hostMove = async () => {
+        // Play old rounds
+        await sleep(2000)
+        for (let pickedId of host.picked) {
+            await playMusic(pickedId)
+            // Invoke change color
+            setInvoke(pickedId)
+            await sleep(200)
+            setInvoke(null)
+            await sleep(1000)
+        }
 
+        // Generate random number
+        let randomId = Math.floor(Math.random() * game.musicButtons.length)
+        dispatch({
+            type: actionTypes.HOST_ADD,
+            payload: randomId
+        })
+        await playMusic(randomId)
+        setInvoke(randomId)
+        await sleep(200)
+        setInvoke(null)
+        await sleep(1000)
 
+        // End host turn
+        dispatch({
+            type: actionTypes.HOST_END
+        })
+
+        // Start user turn
+        dispatch({
+            type: actionTypes.USER_START
+        })
+    }
+
+    const userMove = chosenId => {
+        // User picked the wrong option
+        if (chosenId !== host.picked[user.picked.length]) {
+            dispatch({
+                type: actionTypes.HOST_INIT
+            })
+            // If user has only 1 life  point left, then Game is over
+            if (user.life === 1) {
+                dispatch({
+                    type: actionTypes.GAME_OVER
+                })
+            } else {
+                // If user has more than 1 life left, then user's life will be deducted and the game continues.
+                dispatch({
+                    type: actionTypes.USER_LOSE
+                })
+                dispatch({
+                    type: actionTypes.HOST_START
+                })
+            }
+        } else {
+            // If user correct and user is in the last option of sequence
+            if (user.picked.length + 1 === host.picked.length) {
+                // increment score for user
+                dispatch({
+                    type: actionTypes.USER_SCORE
+                })
+
+                // Mark user turn ends
+                dispatch({
+                    type: actionTypes.USER_END
+                })
+
+                // Move on to host turn
+                dispatch({
+                    type: actionTypes.HOST_START
+                })
+            } else {
+                dispatch({
+                    type: actionTypes.USER_ADD,
+                    payload: chosenId
+                })
+            }
+        }
     }
 
     useEffect( () => {
@@ -74,7 +157,10 @@ const GameScreen = () => {
 
     const userClick = (e) => {
         const chosenId = parseInt(e.currentTarget.id)
-
+        playMusic(chosenId)
+        if (user.move){
+            userMove(chosenId)
+        }
     }
 
     const startButton = () => {
@@ -98,6 +184,7 @@ const GameScreen = () => {
         dispatch({
             type: actionTypes.USER_INIT
         })
+        setInvoke(null)
     }
 
     return (
@@ -131,6 +218,7 @@ const GameScreen = () => {
                 {game.play === 1 && <Typography>Your current score: {user.score}. You have {user.life} life left</Typography>}
                 {game.play === 2 && <Typography>Game is Over. Your Total Score is: {user.score}</Typography>}
             </Box>
+            <br/>
             {game.play === 1 && (
                 <Box>
                     <br/>
@@ -144,7 +232,7 @@ const GameScreen = () => {
                         return (
                             <Grid item md={4} lg={3} xl={2} className={classes.itemGrid} key={index}>
                                 <Button style={{
-                                    backgroundColor: musicButton.color,
+                                    backgroundColor: invoke !== index ? musicButton.color : "white",
                                     width: "250px"
                                 }} variant="contained"
                                     primary="primary"

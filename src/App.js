@@ -2,7 +2,7 @@ import {GameScreen} from "./pages"
 import {CssBaseline} from "@mui/material";
 import {createTheme, ThemeProvider} from "@mui/material/styles"
 import {Provider} from "react-redux";
-import {reduxStore} from "./redux";
+import {store} from "./redux";
 
 const globalTheme = createTheme({
     typography: {
@@ -11,7 +11,6 @@ const globalTheme = createTheme({
 })
 
 function App() {
-    const store = reduxStore
     return (
         <Provider store={store}>
             <ThemeProvider theme={globalTheme}>
